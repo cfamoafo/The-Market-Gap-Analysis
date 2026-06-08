@@ -3,112 +3,23 @@
 **Client:** Helix CPG Partners (Strategic Food & Beverage Consultancy)  
 **Deliverable:** Interactive Dashboard, Code Notebook & Insight Presentation
 
----
-
-## 1. Business Context
-**Helix CPG Partners** advises major food manufacturers on new product development. Our newest client, a global snack manufacturer, wants to launch a "Healthy Snacking" line. They believe the market is oversaturated with sugary treats, but they lack the data to prove where the specific gaps are.
-
-They have hired us to answer one question: **"Where is the 'Blue Ocean' in the snack aisle?"**
-
-Specifically, they are looking for product categories that are currently under-served—areas where consumer demand for health (e.g., High Protein, High Fiber) is not being met by current product offerings (which are mostly High Sugar, High Fat).
-
-## 2. The Data
-You will use the **Open Food Facts** dataset, a free, open, and massive database of food products from around the world.
-
-* **Source:** [Open Food Facts Data](https://world.openfoodfacts.org/data)
-* **Format:** CSV (Comma Separated Values)
-* **Warning:** The full dataset is massive (over 3GB). You are **not** expected to process the entire file. You should filter the data early or work with a manageable subset (e.g., the first 500,000 rows or specific categories).
-
-## 3. Tooling Requirements
-You have the flexibility to choose your development environment:
-
-* **Option A (Recommended):** Use a cloud-hosted notebook like **Google Colab**, or **Deepnote**, etc.
-* **Option B:** Use a local **Jupyter Notebook** or **VS Code**.
-    * *Condition:* If you choose this, you must ensure your code is reproducible. Do not reference local file paths (e.g., `C:/Downloads/...`). Assume the dataset is in the same folder as your notebook.
-* **Dashboarding:** The final output must be a **publicly accessible link** (e.g., Tableau Public, Google Looker Studio, Streamlit Cloud, or PowerBI Web).
-
----
-
-## 4. User Stories & Acceptance Criteria
-
-### Story 1: Data Ingestion & "The Clean Up"
-**As a** Strategy Director,  
-**I want** a clean dataset that removes products with erroneous nutritional information,  
-**So that** my analysis is not skewed by bad data entry.
-
-* **Acceptance Criteria:**
-    * Handle missing values: Decide what to do with rows that have `null` or empty `sugars_100g`, `proteins_100g`, or `product_name`.
-    * Handle outliers: Filter out biologically impossible values.
-    * **Deliverable:** A cleaned Pandas DataFrame or SQL table export.
-
-### Story 2: The Category Wrangler
-**As a** Product Manager,  
-**I want** to group products into readable high-level categories,  
-**So that** I don't have to look at 10,000 unique, messy tags like `en:chocolate-chip-cookies-with-nuts`.
-
-* **Acceptance Criteria:**
-    * The `categories_tags` column is a comma-separated string (e.g., `en:snacks, en:sweet-snacks, en:biscuits`). You must parse this string.
-    * Create a logic to assign a "Primary Category" to each product based on keywords.
-    * Create at least 5 distinct high-level buckets.
-
-### Story 3: The "Nutrient Matrix" Visualization
-**As a** Marketing Lead,  
-**I want** to see a Scatter Plot comparing Sugar (X-axis) vs. Protein (Y-axis) for different categories,  
-**So that** I can visually spot where the products are clustered.
-
-* **Acceptance Criteria:**
-    * Create a dashboard (PowerBI, Tableau, Streamlit, or Python-based charts) displaying this relationship.
-    * Allow the user to filter the chart by the "High Level Categories" you created in Story 2.
-    * **Key Visual:** Identify the "Empty Quadrant" (e.g., High Protein + Low Sugar).
-
-### Story 4: The Recommendation
-**As a** Client,  
-**I want** a clear text recommendation on what product we should build,  
-**So that** I can take this to the R&D team.
-
-* **Acceptance Criteria:**
-    * On the dashboard, include a "Key Insight" box.
-    * Complete this sentence: *"Based on the data, the biggest market opportunity is in [Category Name], specifically targeting products with [X]g of protein and less than [Y]g of sugar."*
-
----
-
-## 5. Bonus User Story: The "Hidden Gem"
-**As a** Health Conscious Consumer,  
-**I want** to know which specific ingredients are driving the high protein content in the "good" products,  
-**So that** I can replicate this in our new recipe.
-
-* **Acceptance Criteria:**
-    * Analyze the `ingredients_text` column for products in your "High Protein" cluster.
-    * Extract and list the Top 3 most common protein sources (e.g., "Whey", "Peanuts", "Soy").
-
----
-
-## 6. The "Candidate's Choice" Challenge
-**As a** Creative Analyst,  
-**I want** to add one additional feature or analysis to this project that I believe provides massive value,  
-**So that** I can show off my business acumen.
-
-* **Instructions:**
-    * Add one more chart, filter, or metric that wasn't asked for.
-    * Explain **why** you added it.
-    * **There is no wrong answer, but you must justify your choice.**
-
----
-
-## 7. Submission Guidelines
-Please edit this `README.md` file in your forked repository to include the following three sections at the top:
-
 ### A. The Executive Summary
-* A 3-5 sentence summary of your findings.
+Analysis of 109,113 cleaned products from the Open Food Facts dataset reveals a clear "Blue Ocean" opportunity in the **Fruits & Vegetables** category, where only 2.9% of products currently sit in the High Protein / Low Sugar quadrant — the lowest penetration of any major category. Using a nutrient matrix (Sugar vs. Protein per 100g), the data confirms that the snack market is heavily clustered in the high-sugar, low-protein zone, with the healthier quadrant remaining largely untapped by manufacturers. The biggest market opportunity is in Fruits & Vegetables, specifically targeting products with **17g of protein and less than 5g of sugar** per 100g — a specification validated by the 75th-percentile performance of existing Blue Ocean products in that space. The top protein-driving ingredients in high-performing products are Soy, Milk, and Oat, providing a clear starting point for R&D formulation.
 
 ### B. Project Links
-* **Link to Notebook:** (e.g., Google Colab, etc.). *Ensure sharing permissions are set to "Anyone with the link can view".*
+Notebook: The full analysis code, PDF, and HTML reports can be found in the [Google Colab](https://colab.research.google.com/drive/1Xo1n_G5EqCc3Ome87MRCQIpPPhj4b3dE?usp=sharing).
 * **Link to Dashboard:** (e.g., Tableau Public / Power BI Web, etc.).
 * **Link to Presentation:** A link to a short slide deck (PDF, PPT) AND (Optional) a 2-minute video walkthrough (YouTube) explaining your results.
 
 ### C. Technical Explanation
-* Briefly explain how you handled the "Data Cleaning".
-* Explain your "Candidate's Choice" addition.
+**Data Cleaning (Story 1)**
+
+The raw dataset was loaded as a 500,000-row sample from the Open Food Facts gzip CSV, using tab-separation and UTF-8 encoding. Columns were narrowed to 15 relevant nutritional and categorical fields. The three most critical columns — `product_name`, `sugars_100g`, and `proteins_100g` — had high null rates (up to 77.67%)-Dropping this many rows from the dataset is illogical but  this is what the data is also telling so it had to be done- so rows missing any of these were dropped first, reducing the dataset to 109,113 rows. Biologically impossible values were then removed by enforcing a 0–100g range across all per-100g nutrient columns (sugars, proteins, fat, fiber, saturated fat, salt, carbohydrates), and energy values above 900 kcal/100g were also discarded. Finally, extreme outliers at the 99th percentile for sugar and protein were trimmed to keep the scatter plots readable without distorting the underlying distribution.
+
+**Candidate's Choice — NutriScore Gap Analysis (Story 6)**
+
+A NutriScore Grade Distribution analysis was added across all primary categories. NutriScore (graded A–E) is an increasingly influential front-of-pack label in EU markets that directly shapes consumer purchasing decisions. The analysis mapped letter grades to a numeric scale (A=1, E=5) and computed the average NutriScore per category, then visualised the full grade distribution as a stacked horizontal bar chart. The key finding: **Sweets** has the worst average NutriScore across all categories (5.00), meaning virtually the entire category is grade E. This was chosen as the Candidate's Choice addition because it reframes the opportunity beyond just nutrient targets — a manufacturer launching a reformulated, NutriScore A/B product in the Sweets space would have a visible, immediate on-shelf competitive advantage over every existing competitor, particularly in EU markets where the label is regulated and trusted by consumers.
+
 
 **Important Note on Code Submission:**
 * Upload your `.ipynb` notebook file to the repo.
