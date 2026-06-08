@@ -23,37 +23,3 @@ The raw dataset was loaded as a 500,000-row sample from the Open Food Facts gzip
 A NutriScore Grade Distribution analysis was added across all primary categories. NutriScore (graded A–E) is an increasingly influential front-of-pack label in EU markets that directly shapes consumer purchasing decisions. The analysis mapped letter grades to a numeric scale (A=1, E=5) and computed the average NutriScore per category, then visualised the full grade distribution as a stacked horizontal bar chart. The key finding: **Sweets** has the worst average NutriScore across all categories (5.00), meaning virtually the entire category is grade E. This was chosen as the Candidate's Choice addition because it reframes the opportunity beyond just nutrient targets — a manufacturer launching a reformulated, NutriScore A/B product in the Sweets space would have a visible, immediate on-shelf competitive advantage over every existing competitor, particularly in EU markets where the label is regulated and trusted by consumers.
 
 
-**Important Note on Code Submission:**
-* Upload your `.ipynb` notebook file to the repo.
-* **Crucial:** Also upload an **HTML or PDF export** of your notebook so we can see your charts even if GitHub fails to render the notebook code.
-* Once you are ready, please fill out the [Official Submission Form Here](https://forms.office.com/e/heitZ9PP7y) with your links
-
----
-
-## 🛑 CRITICAL: Pre-Submission Checklist
-
-**Before you submit your form, you MUST complete this checklist.**
-
-> ⚠️ **WARNING:** If you miss any of these items, your submission will be flagged as "Incomplete" and you will **NOT** be invited to an interview. 
->
-> **We do not accept "permission error" excuses. Test your links in Incognito Mode.**
-
-### 1. Repository & Code Checks
-- [ ] **My GitHub Repo is Public.** (Open the link in a Private/Incognito window to verify).
-- [ ] **I have uploaded the `.ipynb` notebook file.**
-- [ ] **I have ALSO uploaded an HTML or PDF export** of the notebook.
-- [ ] **I have NOT uploaded the massive raw dataset.** (Use `.gitignore` or just don't commit the CSV).
-- [ ] **My code uses Relative Paths.** 
-
-### 2. Deliverable Checks
-- [ ] **My Dashboard link is publicly accessible.** (No login required).
-- [ ] **My Presentation link is publicly accessible.** (Permissions set to "Anyone with the link can view").
-- [ ] **I have updated this `README.md` file** with my Executive Summary and technical notes.
-
-### 3. Completeness
-- [ ] I have completed **User Stories 1-4**.
-- [ ] I have completed the **"Candidate's Choice"** challenge and explained it in the README.
-
-**✅ Only when you have checked every box above, proceed to the submission form.**
-
----
