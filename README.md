@@ -7,9 +7,11 @@
 Analysis of 109,113 cleaned products from the Open Food Facts dataset reveals a clear "Blue Ocean" opportunity in the **Fruits & Vegetables** category, where only 2.9% of products currently sit in the High Protein / Low Sugar quadrant — the lowest penetration of any major category. Using a nutrient matrix (Sugar vs. Protein per 100g), the data confirms that the snack market is heavily clustered in the high-sugar, low-protein zone, with the healthier quadrant remaining largely untapped by manufacturers. The biggest market opportunity is in Fruits & Vegetables, specifically targeting products with **17g of protein and less than 5g of sugar** per 100g — a specification validated by the 75th-percentile performance of existing Blue Ocean products in that space. The top protein-driving ingredients in high-performing products are Soy, Milk, and Oat, providing a clear starting point for R&D formulation.
 
 ### B. Project Links
-Notebook: The full analysis code, PDF, and HTML reports can be found in the [Google Colab](https://colab.research.google.com/drive/1Xo1n_G5EqCc3Ome87MRCQIpPPhj4b3dE?usp=sharing).
-* **Link to Dashboard:** (e.g., Tableau Public / Power BI Web, etc.).
-* **Link to Presentation:** A link to a short slide deck (PDF, PPT) AND (Optional) a 2-minute video walkthrough (YouTube) explaining your results.
+**Notebook**: The full analysis code, PDF, and HTML reports can be found in the [Google Colab](https://colab.research.google.com/drive/1Xo1n_G5EqCc3Ome87MRCQIpPPhj4b3dE?usp=sharing).
+
+**Dashboard**: Interactive[ StreamLit Dashboard](https://the-market-gap-analysis-bn4caamcmgwkq9tuib2wgp.streamlit.app/) .
+
+**Link to Presentation**: [Presentation](https://docs.google.com/presentation/d/1skQ1WxUWPoiBwb4DUUwja3Z-kshBkjcU/edit?usp=sharing&ouid=106337736861289344369&rtpof=true&sd=true).
 
 ### C. Technical Explanation
 **Data Cleaning (Story 1)**
