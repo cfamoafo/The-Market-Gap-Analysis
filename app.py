@@ -335,7 +335,7 @@ with tab1:
     )
     fig.add_annotation(
         x=2, y=97,
-        text="✦ Blue Ocean",
+        text="Blue Ocean",
         showarrow=False,
         font=dict(color="#e8ff47", size=11, family="DM Mono"),
         xanchor="left"
@@ -442,7 +442,7 @@ with tab2:
             annotation_font=dict(color="#e8ff47", size=10),
         )
         fig2.update_layout(
-            **PLOT_THEME,
+            PLOT_THEME,
             height=380,
             xaxis=dict(title="Blue Ocean %", gridcolor="#2a2a2a", ticksuffix="%"),
             yaxis=dict(gridcolor="#2a2a2a"),
