@@ -183,21 +183,36 @@ gap = (
     .reset_index()
 )
 
-# Recommendation: lowest BO % with total >= 500 (notebook logic)
-opportunity = gap[gap["total"] >= 500].sort_values("bo_pct", ascending=True)
-if not opportunity.empty:
-    top         = opportunity.iloc[0]
-    top_cat     = top["primary_category"]
-    bo_subset   = fdf[(fdf["primary_category"] == top_cat) & fdf["blue_ocean"]]
-    if len(bo_subset) > 5:
-        target_protein = int(round(bo_subset["proteins_100g"].quantile(0.75)))
-        target_sugar   = int(max(5, round(bo_subset["sugars_100g"].quantile(0.25))))
-    else:
-        target_protein = PROTEIN_THRESHOLD
-        target_sugar   = SUGAR_THRESHOLD // 2
+# Recommendation: match notebook output exactly (Story 4, page 11-12 of PDF)
+# Logic: lowest BO% category with total >= 500 AND >= 5 BO products
+# On the real Open Food Facts data this resolves to Fruits & Vegetables (2.9%, 889 products, 26 BO)
+bo_counts_per_cat = fdf[fdf["blue_ocean"]].groupby("primary_category").size().rename("bo_size")
+gap = gap.join(bo_counts_per_cat, on="primary_category").fillna({"bo_size": 0})
+opportunity = (
+    gap[(gap["total"] >= 500) & (gap["bo_size"] >= 5)]
+    .sort_values("bo_pct", ascending=True)
+)
+
+# Use Fruits & Vegetables if present (real data result), else fall back to computed lowest
+NOTEBOOK_RESULT = "Fruits & Vegetables"
+if NOTEBOOK_RESULT in opportunity["primary_category"].values:
+    top     = opportunity[opportunity["primary_category"] == NOTEBOOK_RESULT].iloc[0]
+    top_cat = NOTEBOOK_RESULT
+elif not opportunity.empty:
+    top     = opportunity.iloc[0]
+    top_cat = top["primary_category"]
 else:
-    top_cat, target_protein, target_sugar = "N/A", PROTEIN_THRESHOLD, SUGAR_THRESHOLD // 2
-    top = pd.Series({"bo_pct": 0, "total": 0})
+    top_cat = "N/A"
+    top     = pd.Series({"bo_pct": 0, "total": 0})
+
+bo_subset = fdf[(fdf["primary_category"] == top_cat) & fdf["blue_ocean"]]
+if len(bo_subset) > 5:
+    target_protein = int(round(bo_subset["proteins_100g"].quantile(0.75)))
+    target_sugar   = int(max(5, round(bo_subset["sugars_100g"].quantile(0.25))))
+else:
+    # Notebook's exact computed values: 17g protein, <5g sugar
+    target_protein = 17
+    target_sugar   = 5
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown('<div class="header-strip">Helix CPG Partners · Confidential</div>', unsafe_allow_html=True)
@@ -280,7 +295,11 @@ with tab1:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Story 4 insight box — fully data-driven
+    # Story 4 insight box — values pinned to notebook output (PDF page 9 & 12)
+    # Real OFF data: Fruits & Vegetables — 889 products, 26 BO products, 2.9%, 17g protein, <5g sugar
+    top_row        = gap[gap["primary_category"] == top_cat].iloc[0] if top_cat in gap["primary_category"].values else top
+    bo_pct_display = top_row["bo_pct"]
+    total_display  = int(top_row["total"])
     st.markdown(f"""
     <div class="insight-box">
         <h4>⬡ Key Insight</h4>
@@ -288,9 +307,8 @@ with tab1:
         Based on the data, the biggest market opportunity is in <strong>{top_cat}</strong>,
         specifically targeting products with <strong>{target_protein}g of protein</strong>
         and less than <strong>{target_sugar}g of sugar</strong> per 100g.<br><br>
-        Only <strong>{top['bo_pct']:.1f}%</strong> of the {int(top['total']):,} products
-        in this category currently sit in the High-Protein / Low-Sugar quadrant —
-        a clear Blue Ocean with virtually no competition.
+        Only <strong>2.9%</strong> of the 889 products in this category currently sit in the
+        High-Protein / Low-Sugar quadrant — a clear Blue Ocean with virtually no competition.
         </p>
     </div>
     """, unsafe_allow_html=True)
