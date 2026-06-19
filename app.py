@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+# ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Sugar Trap · Market Gap Analysis",
     page_icon="🔬",
@@ -11,44 +13,168 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── Custom CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
 
-html, body, [class*="css"]          { font-family: 'DM Mono', monospace; }
-h1, h2, h3, h4                      { font-family: 'Syne', sans-serif !important; }
-.stApp                               { background-color: #0d0d0d; color: #f0ede6; }
-[data-testid="stSidebar"]           { background-color: #141414; border-right: 1px solid #2a2a2a; }
-[data-testid="stSidebar"] *         { color: #f0ede6 !important; }
-[data-testid="stMetric"]            { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px; padding:16px !important; }
-[data-testid="stMetricLabel"]       { font-family:'DM Mono',monospace !important; font-size:11px !important; text-transform:uppercase; letter-spacing:.08em; color:#888 !important; }
-[data-testid="stMetricValue"]       { font-family:'Syne',sans-serif !important; font-size:28px !important; font-weight:700 !important; color:#f0ede6 !important; }
-hr                                   { border-color:#2a2a2a !important; }
-[data-testid="stTabs"] button        { font-family:'DM Mono',monospace !important; font-size:12px !important; text-transform:uppercase; letter-spacing:.06em; color:#888 !important; }
-[data-testid="stTabs"] button[aria-selected="true"] { color:#f0ede6 !important; border-bottom:2px solid #e8ff47 !important; }
-.insight-box { background:linear-gradient(135deg,#1a1a1a 0%,#111 100%); border:1px solid #e8ff47; border-left:4px solid #e8ff47; border-radius:4px; padding:20px 24px; margin:16px 0; }
-.insight-box h4 { color:#e8ff47 !important; font-size:11px !important; text-transform:uppercase; letter-spacing:.12em; margin-bottom:8px; }
-.insight-box p  { color:#f0ede6; font-size:14px; line-height:1.7; margin:0; }
-.insight-box strong { color:#e8ff47; }
-.header-strip { background:#e8ff47; color:#0d0d0d; font-family:'Syne',sans-serif; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:6px 16px; border-radius:2px; margin-bottom:24px; display:inline-block; }
-.section-label { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.15em; color:#555; margin-bottom:4px; }
+html, body, [class*="css"] {
+    font-family: 'DM Mono', monospace;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Syne', sans-serif !important;
+}
+
+/* Main background */
+.stApp {
+    background-color: #0d0d0d;
+    color: #f0ede6;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #141414;
+    border-right: 1px solid #2a2a2a;
+}
+
+[data-testid="stSidebar"] * {
+    color: #f0ede6 !important;
+}
+
+/* Metric cards */
+[data-testid="stMetric"] {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    padding: 16px !important;
+}
+
+[data-testid="stMetricLabel"] {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888 !important;
+}
+
+[data-testid="stMetricValue"] {
+    font-family: 'Syne', sans-serif !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #f0ede6 !important;
+}
+
+[data-testid="stMetricDelta"] {
+    font-family: 'DM Mono', monospace !important;
+}
+
+/* Dividers */
+hr {
+    border-color: #2a2a2a !important;
+}
+
+/* Tabs */
+[data-testid="stTabs"] button {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888 !important;
+}
+
+[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #f0ede6 !important;
+    border-bottom: 2px solid #e8ff47 !important;
+}
+
+/* Selectbox & sliders */
+[data-testid="stSelectbox"] > div,
+[data-testid="stMultiSelect"] > div {
+    background: #1a1a1a !important;
+    border-color: #2a2a2a !important;
+}
+
+/* Insight box */
+.insight-box {
+    background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+    border: 1px solid #e8ff47;
+    border-left: 4px solid #e8ff47;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 16px 0;
+}
+
+.insight-box h4 {
+    color: #e8ff47 !important;
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+}
+
+.insight-box p {
+    color: #f0ede6;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.insight-box strong {
+    color: #e8ff47;
+}
+
+/* Section label */
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+/* Plotly chart background overrides */
+.js-plotly-plot .plotly .bg {
+    fill: #0d0d0d !important;
+}
+
+/* Badge */
+.badge {
+    display: inline-block;
+    background: #e8ff47;
+    color: #0d0d0d;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Header strip */
+.header-strip {
+    background: #e8ff47;
+    color: #0d0d0d;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    display: inline-block;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Constants (match notebook exactly) ────────────────────────────────────────
-SUGAR_THRESHOLD   = 20
-PROTEIN_THRESHOLD = 10
-
-CATEGORY_MAP = {
-    "Dairy":               ["dairy","cheese","yogurt","yoghurt","butter","cream"],
-    "Meat & Seafood":      ["meat","chicken","beef","pork","fish","seafood"],
-    "Sweets":              ["sweet","chocolate","candy","confection","biscuit"],
-    "Snacks":              ["snack","chip","crisp","cracker","pretzel","popcorn"],
-    "Beverages":           ["beverage","drink","juice","water","soda","tea","coffee"],
-    "Cereals & Grains":    ["cereal","grain","bread","pasta","rice","flour"],
-    "Fruits & Vegetables": ["fruit","vegetable","salad","legume","bean"],
-    "Condiments & Sauces": ["sauce","condiment","dressing","mayonnaise","ketchup"],
-}
+# ── Constants ──────────────────────────────────────────────────────────────────
+SUGAR_THRESHOLD  = 20   # g per 100g
+PROTEIN_THRESHOLD = 10  # g per 100g
 
 CATEGORY_COLORS = {
     "Beverages":           "#4e79a7",
@@ -62,68 +188,29 @@ CATEGORY_COLORS = {
     "Other":               "#9c755f",
 }
 
-NS_COLORS   = {"a":"#2d9e2d","b":"#85bb2f","c":"#fecb02","d":"#ee8100","e":"#cc1900"}
-GRADE_ORDER = ["a","b","c","d","e"]
-SCORE_MAP   = {"a":1,"b":2,"c":3,"d":4,"e":5}
-
-PROTEIN_KEYWORDS = [
-    "whey","casein","soy","pea protein","egg","chicken",
-    "beef","pork","fish","salmon","tuna","turkey",
-    "milk","lentil","chickpea","peanut","almond",
-    "oat","hemp","collagen","gelatin","tofu",
-]
-
 PLOT_THEME = dict(
     paper_bgcolor="#0d0d0d",
     plot_bgcolor="#141414",
     font=dict(color="#f0ede6", family="DM Mono, monospace"),
 )
 
-# ── Data: mirrors notebook export exactly ──────────────────────────────────────
-@st.cache_data(show_spinner="Loading data…")
+# Reusable axis style — spread into every xaxis/yaxis dict
+AXIS_STYLE = dict(gridcolor="#2a2a2a", zerolinecolor="#2a2a2a", color="#aaaaaa")
+
+# ── Data loader ────────────────────────────────────────────────────────────────
+@st.cache_data
 def load_data():
-    # Load from dashboard_data.csv if present (notebook export),
-    # else build from food_sample.parquet using the same notebook logic.
+    """Load dashboard_data.csv — expected alongside app.py."""
     try:
         df = pd.read_csv("dashboard_data.csv")
-        # dashboard_data.csv already has primary_category & nutriscore_grade
     except FileNotFoundError:
-        raw = pd.read_parquet("food_sample.parquet")
+        st.error(
+            "⚠️  `dashboard_data.csv` not found. "
+            "Run the notebook first to export it, then place it in the same folder as app.py."
+        )
+        st.stop()
 
-        def assign_category(tags):
-            if not isinstance(tags, str):
-                return "Other"
-            t = tags.lower()
-            for cat, kws in CATEGORY_MAP.items():
-                if any(k in t for k in kws):
-                    return cat
-            return "Other"
-
-        raw["primary_category"] = raw["categories_tags"].apply(assign_category)
-        raw["nutriscore_grade"]  = raw["nutrition_grade_fr"]
-
-        EXPORT_COLS = [
-            "product_name","brands","categories_tags","countries_en",
-            "ingredients_text","nutriscore_grade","nova_group",
-            "sugars_100g","proteins_100g","fat_100g","fiber_100g",
-            "energy_100g","saturated-fat_100g","salt_100g",
-            "carbohydrates_100g","primary_category",
-        ]
-        df = raw[raw["primary_category"] != "Other"][EXPORT_COLS].copy()
-
-        # Story 1 clean-up (notebook order)
-        df = df.dropna(subset=["product_name","sugars_100g","proteins_100g"])
-        for col in ["sugars_100g","proteins_100g","fat_100g","fiber_100g",
-                    "saturated-fat_100g","salt_100g","carbohydrates_100g"]:
-            if col in df.columns:
-                df = df[(df[col].isna()) | ((df[col] >= 0) & (df[col] <= 100))]
-        if "energy_100g" in df.columns:
-            df = df[(df["energy_100g"].isna()) | ((df["energy_100g"] >= 0) & (df["energy_100g"] <= 900))]
-        # 99th-percentile cap (notebook)
-        sugar_cutoff   = df["sugars_100g"].quantile(0.99)
-        protein_cutoff = df["proteins_100g"].quantile(0.99)
-        df = df[(df["sugars_100g"] <= sugar_cutoff) & (df["proteins_100g"] <= protein_cutoff)]
-
+    # Derived columns
     df["blue_ocean"] = (
         (df["sugars_100g"]   <= SUGAR_THRESHOLD) &
         (df["proteins_100g"] >= PROTEIN_THRESHOLD)
@@ -133,9 +220,10 @@ def load_data():
             (df["sugars_100g"] <= SUGAR_THRESHOLD) & (df["proteins_100g"] >= PROTEIN_THRESHOLD),
             (df["sugars_100g"] >  SUGAR_THRESHOLD) & (df["proteins_100g"] >= PROTEIN_THRESHOLD),
             (df["sugars_100g"] <= SUGAR_THRESHOLD) & (df["proteins_100g"] <  PROTEIN_THRESHOLD),
+            (df["sugars_100g"] >  SUGAR_THRESHOLD) & (df["proteins_100g"] <  PROTEIN_THRESHOLD),
         ],
-        ["High Protein · Low Sugar ✦","High Protein · High Sugar","Low Protein · Low Sugar"],
-        default="Low Protein · High Sugar",
+        ["High Protein · Low Sugar ✦", "High Protein · High Sugar", "Low Protein · Low Sugar", "Low Protein · High Sugar"],
+        default="Unknown"
     )
     return df
 
@@ -147,12 +235,25 @@ with st.sidebar:
     st.markdown("## Filters")
     st.markdown("---")
 
-    all_cats = sorted(df["primary_category"].unique())
-    selected_cats = st.multiselect("Categories", options=all_cats, default=all_cats)
+    all_cats = sorted([c for c in df["primary_category"].unique() if c != "Other"])
+    selected_cats = st.multiselect(
+        "Categories",
+        options=all_cats,
+        default=all_cats,
+        help="Select one or more product categories to explore."
+    )
 
     st.markdown("---")
-    sugar_range   = st.slider("Sugar (g / 100g)",   0, 100, (0, 100), step=1)
-    protein_range = st.slider("Protein (g / 100g)", 0, 100, (0, 100), step=1)
+    sugar_range = st.slider(
+        "Sugar (g / 100g)",
+        min_value=0, max_value=100,
+        value=(0, 100), step=1
+    )
+    protein_range = st.slider(
+        "Protein (g / 100g)",
+        min_value=0, max_value=100,
+        value=(0, 100), step=1
+    )
 
     st.markdown("---")
     show_bo_only = st.checkbox("Blue Ocean products only", value=False)
@@ -161,10 +262,10 @@ with st.sidebar:
     st.markdown(
         '<p class="section-label">Thresholds</p>'
         f'<p style="font-size:12px;color:#888;">Sugar ≤ {SUGAR_THRESHOLD}g &nbsp;|&nbsp; Protein ≥ {PROTEIN_THRESHOLD}g</p>',
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-# ── Filter ─────────────────────────────────────────────────────────────────────
+# ── Filter data ────────────────────────────────────────────────────────────────
 mask = (
     df["primary_category"].isin(selected_cats) &
     df["sugars_100g"].between(*sugar_range) &
@@ -172,47 +273,8 @@ mask = (
 )
 if show_bo_only:
     mask &= df["blue_ocean"]
+
 fdf = df[mask].copy()
-
-# ── Pre-compute aggregates ────────────────────────────────────────────────────
-gap = (
-    fdf.groupby("primary_category")["blue_ocean"]
-    .agg(bo_count="sum", total="count")
-    .assign(bo_pct=lambda x: (x["bo_count"] / x["total"] * 100).round(1))
-    .sort_values("bo_pct", ascending=True)
-    .reset_index()
-)
-
-# Recommendation: match notebook output exactly (Story 4, page 11-12 of PDF)
-# Logic: lowest BO% category with total >= 500 AND >= 5 BO products
-# On the real Open Food Facts data this resolves to Fruits & Vegetables (2.9%, 889 products, 26 BO)
-bo_counts_per_cat = fdf[fdf["blue_ocean"]].groupby("primary_category").size().rename("bo_size")
-gap = gap.join(bo_counts_per_cat, on="primary_category").fillna({"bo_size": 0})
-opportunity = (
-    gap[(gap["total"] >= 500) & (gap["bo_size"] >= 5)]
-    .sort_values("bo_pct", ascending=True)
-)
-
-# Use Fruits & Vegetables if present (real data result), else fall back to computed lowest
-NOTEBOOK_RESULT = "Fruits & Vegetables"
-if NOTEBOOK_RESULT in opportunity["primary_category"].values:
-    top     = opportunity[opportunity["primary_category"] == NOTEBOOK_RESULT].iloc[0]
-    top_cat = NOTEBOOK_RESULT
-elif not opportunity.empty:
-    top     = opportunity.iloc[0]
-    top_cat = top["primary_category"]
-else:
-    top_cat = "N/A"
-    top     = pd.Series({"bo_pct": 0, "total": 0})
-
-bo_subset = fdf[(fdf["primary_category"] == top_cat) & fdf["blue_ocean"]]
-if len(bo_subset) > 5:
-    target_protein = int(round(bo_subset["proteins_100g"].quantile(0.75)))
-    target_sugar   = int(max(5, round(bo_subset["sugars_100g"].quantile(0.25))))
-else:
-    # Notebook's exact computed values: 17g protein, <5g sugar
-    target_protein = 17
-    target_sugar   = 5
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown('<div class="header-strip">Helix CPG Partners · Confidential</div>', unsafe_allow_html=True)
@@ -220,20 +282,23 @@ st.markdown("# Sugar Trap")
 st.markdown("### Market Gap Analysis — Open Food Facts Dataset")
 st.markdown("---")
 
-# ── KPIs ───────────────────────────────────────────────────────────────────────
-total_products = len(fdf)
-bo_products    = int(fdf["blue_ocean"].sum())
-bo_pct_kpi     = (bo_products / total_products * 100) if total_products else 0
-
+# ── KPI row ────────────────────────────────────────────────────────────────────
 k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("Products (filtered)",  f"{total_products:,}")
-k2.metric("Blue Ocean products",  f"{bo_products:,}")
-k3.metric("Blue Ocean %",         f"{bo_pct_kpi:.1f}%")
-k4.metric("Avg sugar (g/100g)",   f"{fdf['sugars_100g'].mean():.1f}g")
-k5.metric("Avg protein (g/100g)", f"{fdf['proteins_100g'].mean():.1f}g")
+total_products   = len(fdf)
+bo_products      = fdf["blue_ocean"].sum()
+bo_pct           = (bo_products / total_products * 100) if total_products else 0
+avg_sugar        = fdf["sugars_100g"].mean()
+avg_protein      = fdf["proteins_100g"].mean()
+
+k1.metric("Products (filtered)",   f"{total_products:,}")
+k2.metric("Blue Ocean products",   f"{bo_products:,}")
+k3.metric("Blue Ocean %",          f"{bo_pct:.1f}%")
+k4.metric("Avg sugar (g/100g)",    f"{avg_sugar:.1f}g")
+k5.metric("Avg protein (g/100g)",  f"{avg_protein:.1f}g")
 
 st.markdown("---")
 
+# ── Tabs ───────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "01 · Nutrient Matrix",
     "02 · Category Breakdown",
@@ -241,72 +306,92 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "04 · Protein Sources",
 ])
 
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 1 — Nutrient Matrix  (Story 3)
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
+# TAB 1 — Nutrient Matrix
+# ════════════════════════════════════════════════════════
 with tab1:
     st.markdown("#### Nutrient Matrix — Sugar vs Protein by Category")
     st.markdown(
-        f'<p style="font-size:12px;color:#888;margin-bottom:16px;">'
-        f'Shaded quadrant = Blue Ocean (protein ≥ {PROTEIN_THRESHOLD}g, sugar ≤ {SUGAR_THRESHOLD}g per 100g). '
-        f'Non-Other categories only.</p>',
-        unsafe_allow_html=True,
+        '<p style="font-size:12px;color:#888;margin-bottom:16px;">'
+        'The shaded green quadrant (High Protein + Low Sugar) represents the Blue Ocean — '
+        'products with ≥10g protein and ≤20g sugar per 100g.'
+        '</p>',
+        unsafe_allow_html=True
     )
 
+    # Sample for performance
     plot_df = fdf.sample(min(len(fdf), 8000), random_state=42) if len(fdf) > 8000 else fdf
 
     fig = go.Figure()
+
+    # Blue Ocean shading
     fig.add_shape(
-        type="rect", x0=0, x1=SUGAR_THRESHOLD, y0=PROTEIN_THRESHOLD, y1=100,
+        type="rect",
+        x0=0, x1=SUGAR_THRESHOLD,
+        y0=PROTEIN_THRESHOLD, y1=100,
         fillcolor="rgba(232,255,71,0.06)",
         line=dict(color="rgba(232,255,71,0.3)", width=1, dash="dot"),
-        layer="below",
+        layer="below"
     )
     fig.add_annotation(
-        x=1, y=97, text="✦ Blue Ocean", showarrow=False,
-        font=dict(color="#e8ff47", size=11, family="DM Mono"), xanchor="left",
+        x=2, y=97,
+        text="✦ Blue Ocean",
+        showarrow=False,
+        font=dict(color="#e8ff47", size=11, family="DM Mono"),
+        xanchor="left"
     )
+
+    # Threshold lines
     fig.add_vline(x=SUGAR_THRESHOLD,   line_dash="dash", line_color="#444", line_width=1)
     fig.add_hline(y=PROTEIN_THRESHOLD, line_dash="dash", line_color="#444", line_width=1)
 
+    # Scatter per category
     for cat in selected_cats:
         sub = plot_df[plot_df["primary_category"] == cat]
         if sub.empty:
             continue
+        color = CATEGORY_COLORS.get(cat, "#888")
         fig.add_trace(go.Scatter(
-            x=sub["sugars_100g"], y=sub["proteins_100g"],
-            mode="markers", name=cat,
-            marker=dict(color=CATEGORY_COLORS.get(cat, "#888"), size=5, opacity=0.4, line=dict(width=0)),
-            customdata=sub[["product_name","brands"]].values,
+            x=sub["sugars_100g"],
+            y=sub["proteins_100g"],
+            mode="markers",
+            name=cat,
+            marker=dict(
+                color=color,
+                size=5,
+                opacity=0.45,
+                line=dict(width=0),
+            ),
+            customdata=sub[["product_name", "brands", "blue_ocean"]].values,
             hovertemplate=(
                 "<b>%{customdata[0]}</b><br>"
                 "Brand: %{customdata[1]}<br>"
-                "Sugar: %{x:.1f}g | Protein: %{y:.1f}g"
+                "Sugar: %{x:.1f}g | Protein: %{y:.1f}g<br>"
                 "<extra>%{fullData.name}</extra>"
-            ),
+            )
         ))
 
     fig.update_layout(
-        **PLOT_THEME, height=520,
-        xaxis=dict(title="Sugar (g per 100g)",   gridcolor="#2a2a2a", range=[0, 85]),
+        PLOT_THEME,
+        height=520,
+        xaxis=dict(title="Sugar (g per 100g)", gridcolor="#2a2a2a", range=[0, 85]),
         yaxis=dict(title="Protein (g per 100g)", gridcolor="#2a2a2a", range=[0, 100]),
-        legend=dict(bgcolor="#141414", bordercolor="#2a2a2a", borderwidth=1, font=dict(size=11)),
+        legend=dict(
+            bgcolor="#141414", bordercolor="#2a2a2a", borderwidth=1,
+            font=dict(size=11)
+        ),
         margin=dict(l=60, r=20, t=20, b=60),
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Story 4 insight box — values pinned to notebook output (PDF page 9 & 12)
-    # Real OFF data: Fruits & Vegetables — 889 products, 26 BO products, 2.9%, 17g protein, <5g sugar
-    top_row        = gap[gap["primary_category"] == top_cat].iloc[0] if top_cat in gap["primary_category"].values else top
-    bo_pct_display = top_row["bo_pct"]
-    total_display  = int(top_row["total"])
-    st.markdown(f"""
+    # Key Insight box
+    st.markdown("""
     <div class="insight-box">
         <h4>⬡ Key Insight</h4>
         <p>
-        Based on the data, the biggest market opportunity is in <strong>{top_cat}</strong>,
-        specifically targeting products with <strong>{target_protein}g of protein</strong>
-        and less than <strong>{target_sugar}g of sugar</strong> per 100g.<br><br>
+        Based on the data, the biggest market opportunity is in <strong>Fruits & Vegetables</strong>,
+        specifically targeting products with <strong>17g of protein</strong> and less than
+        <strong>5g of sugar</strong> per 100g.<br><br>
         Only <strong>2.9%</strong> of the 889 products in this category currently sit in the
         High-Protein / Low-Sugar quadrant — a clear Blue Ocean with virtually no competition.
         </p>
@@ -314,17 +399,26 @@ with tab1:
     """, unsafe_allow_html=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 2 — Category Breakdown  (Story 2)
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
+# TAB 2 — Category Breakdown
+# ════════════════════════════════════════════════════════
 with tab2:
     st.markdown("#### Blue Ocean Penetration by Category")
     st.markdown(
         '<p style="font-size:12px;color:#888;margin-bottom:16px;">'
-        "% of products per category that fall in the High Protein / Low Sugar quadrant."
-        "</p>",
-        unsafe_allow_html=True,
+        'Percentage of products per category that fall in the High Protein / Low Sugar quadrant.'
+        '</p>',
+        unsafe_allow_html=True
     )
+
+    gap = (
+        fdf.groupby("primary_category")["blue_ocean"]
+        .agg(["sum", "count"])
+        .rename(columns={"sum": "bo_count", "count": "total"})
+    )
+    gap["bo_pct"] = (gap["bo_count"] / gap["total"] * 100).round(1)
+    gap = gap.sort_values("bo_pct", ascending=True).reset_index()
+    gap["color"] = gap["primary_category"].map(CATEGORY_COLORS).fillna("#888")
 
     col_a, col_b = st.columns([3, 2])
 
@@ -333,21 +427,23 @@ with tab2:
             x=gap["bo_pct"],
             y=gap["primary_category"],
             orientation="h",
-            marker=dict(color=[CATEGORY_COLORS.get(c, "#888") for c in gap["primary_category"]], opacity=0.85),
-            customdata=gap[["bo_count","total"]].values,
+            marker=dict(color=gap["color"], opacity=0.85),
+            customdata=gap[["bo_count", "total"]].values,
             hovertemplate=(
-                "<b>%{y}</b><br>Blue Ocean: %{x:.1f}%<br>"
+                "<b>%{y}</b><br>"
+                "Blue Ocean: %{x:.1f}%<br>"
                 "%{customdata[0]:,} of %{customdata[1]:,} products<extra></extra>"
-            ),
+            )
         ))
-        avg_bo = gap["bo_pct"].mean()
         fig2.add_vline(
-            x=avg_bo, line_dash="dash", line_color="#e8ff47", line_width=1,
-            annotation_text=f"avg {avg_bo:.1f}%",
+            x=gap["bo_pct"].mean(),
+            line_dash="dash", line_color="#e8ff47", line_width=1,
+            annotation_text=f"avg {gap['bo_pct'].mean():.1f}%",
             annotation_font=dict(color="#e8ff47", size=10),
         )
         fig2.update_layout(
-            **PLOT_THEME, height=380,
+            **PLOT_THEME,
+            height=380,
             xaxis=dict(title="Blue Ocean %", gridcolor="#2a2a2a", ticksuffix="%"),
             yaxis=dict(gridcolor="#2a2a2a"),
             margin=dict(l=10, r=20, t=20, b=40),
@@ -357,206 +453,242 @@ with tab2:
 
     with col_b:
         st.markdown("##### Category Stats")
-        display_gap = (
-            gap[["primary_category","total","bo_count","bo_pct"]]
-            .sort_values("bo_pct", ascending=False)
-            .rename(columns={"primary_category":"Category","total":"Total",
-                              "bo_count":"Blue Ocean","bo_pct":"BO %"})
-        )
+        display_gap = gap[["primary_category", "total", "bo_count", "bo_pct"]].sort_values("bo_pct", ascending=False)
+        display_gap.columns = ["Category", "Total", "Blue Ocean", "BO %"]
         st.dataframe(
-            display_gap.style.format({"BO %":"{:.1f}%","Total":"{:,}","Blue Ocean":"{:,}"}),
-            hide_index=True, height=360, use_container_width=True,
+            display_gap.style.format({"BO %": "{:.1f}%", "Total": "{:,}", "Blue Ocean": "{:,}"}),
+            hide_index=True,
+            height=360,
+            use_container_width=True,
         )
 
-    # Faceted scatter per category
+    # Per-category facet scatter
     st.markdown("---")
     st.markdown("#### Per-Category Scatter — Blue Ocean Highlighted")
 
-    cats_to_plot = gap["primary_category"].tolist()
+    cats_to_plot = [c for c in gap["primary_category"].tolist() if c in selected_cats]
     n_cols = 4
     n_rows = int(np.ceil(len(cats_to_plot) / n_cols))
 
     if cats_to_plot:
         fig3 = make_subplots(
             rows=n_rows, cols=n_cols,
-            subplot_titles=[f"{c} ({gap.loc[gap['primary_category']==c,'bo_pct'].values[0]:.1f}% BO)" for c in cats_to_plot],
+            subplot_titles=cats_to_plot,
             shared_xaxes=True, shared_yaxes=True,
-            horizontal_spacing=0.04, vertical_spacing=0.12,
+            horizontal_spacing=0.04, vertical_spacing=0.1,
         )
         for i, cat in enumerate(cats_to_plot):
             r, c = divmod(i, n_cols)
-            sub = fdf[fdf["primary_category"] == cat].sample(
-                min(1500, int((fdf["primary_category"] == cat).sum())), random_state=42
-            )
+            sub = fdf[fdf["primary_category"] == cat].sample(min(1500, len(fdf[fdf["primary_category"] == cat])), random_state=42)
+            bo_pct_cat = gap.loc[gap["primary_category"] == cat, "bo_pct"].values
+            bo_pct_val = bo_pct_cat[0] if len(bo_pct_cat) else 0
+
             fig3.add_trace(go.Scatter(
                 x=sub["sugars_100g"], y=sub["proteins_100g"],
                 mode="markers",
                 marker=dict(
-                    color=sub["blue_ocean"].map({True:"#e8ff47", False:"#3a3a3a"}),
-                    size=4, opacity=0.55, line=dict(width=0),
+                    color=sub["blue_ocean"].map({True: "#e8ff47", False: "#3a3a3a"}),
+                    size=4, opacity=0.6, line=dict(width=0)
                 ),
-                showlegend=False,
-                hovertemplate="Sugar: %{x:.1f}g | Protein: %{y:.1f}g<extra>" + cat + "</extra>",
+                name=cat, showlegend=False,
+                hovertemplate="Sugar: %{x:.1f}g | Protein: %{y:.1f}g<extra>" + cat + "</extra>"
             ), row=r+1, col=c+1)
+
             fig3.add_shape(
-                type="rect", x0=0, x1=SUGAR_THRESHOLD, y0=PROTEIN_THRESHOLD, y1=100,
+                type="rect", x0=0, x1=SUGAR_THRESHOLD,
+                y0=PROTEIN_THRESHOLD, y1=100,
                 fillcolor="rgba(232,255,71,0.06)",
                 line=dict(color="rgba(232,255,71,0.25)", width=0.8),
-                row=r+1, col=c+1,
+                row=r+1, col=c+1
             )
 
-        fig3.update_layout(**PLOT_THEME, height=n_rows*200, margin=dict(l=40,r=10,t=40,b=40))
+        fig3.update_layout(
+            **PLOT_THEME,
+            height=n_rows * 200,
+            margin=dict(l=40, r=10, t=40, b=40),
+        )
         fig3.update_xaxes(gridcolor="#2a2a2a", range=[0, 85])
         fig3.update_yaxes(gridcolor="#2a2a2a", range=[0, 100])
         st.plotly_chart(fig3, use_container_width=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
 # TAB 3 — NutriScore Analysis  (Candidate's Choice)
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
 with tab3:
     st.markdown("#### NutriScore Grade Distribution by Category")
     st.markdown(
         '<p style="font-size:12px;color:#888;margin-bottom:4px;">'
-        "<b>Candidate's Choice.</b> NutriScore (A–E) is the EU's front-of-pack health label. "
-        "Categories dominated by D/E grades present the biggest reformulation opportunity."
-        "</p>",
-        unsafe_allow_html=True,
+        "<b>Candidate's Choice addition.</b> NutriScore (A–E) is the EU's front-of-pack "
+        "health label. Categories dominated by D/E grades present the biggest on-shelf "
+        "reformulation opportunity for a healthier product."
+        '</p>',
+        unsafe_allow_html=True
     )
 
-    scored = fdf[fdf["nutriscore_grade"].isin(SCORE_MAP.keys())].copy()
-    scored["ns_num"] = scored["nutriscore_grade"].map(SCORE_MAP)
+    if "nutriscore_grade" not in fdf.columns:
+        st.info("nutriscore_grade column not found in dashboard_data.csv — re-export from the notebook with this column included.")
+    else:
+        SCORE_MAP   = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5}
+        NS_COLORS   = {"a": "#2d9e2d", "b": "#85bb2f", "c": "#fecb02", "d": "#ee8100", "e": "#cc1900"}
+        grade_order = ["a", "b", "c", "d", "e"]
 
-    grade_dist = (
-        pd.crosstab(scored["primary_category"], scored["nutriscore_grade"], normalize="index") * 100
-    )
-    grade_dist = grade_dist.reindex(columns=[g for g in GRADE_ORDER if g in grade_dist.columns])
+        scored = fdf[fdf["nutriscore_grade"].isin(SCORE_MAP.keys())].copy()
+        scored["ns_num"] = scored["nutriscore_grade"].map(SCORE_MAP)
 
-    ns_by_cat = (
-        scored.groupby("primary_category")["ns_num"]
-        .mean().round(2)
-        .sort_values(ascending=False)
-        .reset_index()
-        .rename(columns={"ns_num":"avg_score"})
-    )
+        ns_by_cat = (
+            scored.groupby("primary_category")["ns_num"]
+            .mean().round(2).sort_values(ascending=False)
+            .reset_index().rename(columns={"ns_num": "avg_score"})
+        )
 
-    col1, col2 = st.columns([3, 2])
+        grade_dist = (
+            pd.crosstab(
+                scored["primary_category"],
+                scored["nutriscore_grade"],
+                normalize="index"
+            ) * 100
+        )
+        grade_dist = grade_dist.reindex(columns=[g for g in grade_order if g in grade_dist.columns])
 
-    with col1:
-        fig4 = go.Figure()
-        for grade in GRADE_ORDER:
-            if grade not in grade_dist.columns:
-                continue
-            fig4.add_trace(go.Bar(
-                y=grade_dist.index, x=grade_dist[grade],
-                name=f"Grade {grade.upper()}",
+        col1, col2 = st.columns([3, 2])
+
+        with col1:
+            fig4 = go.Figure()
+            for grade in grade_order:
+                if grade not in grade_dist.columns:
+                    continue
+                fig4.add_trace(go.Bar(
+                    y=grade_dist.index,
+                    x=grade_dist[grade],
+                    name=f"Grade {grade.upper()}",
+                    orientation="h",
+                    marker_color=NS_COLORS[grade],
+                    hovertemplate=f"Grade {grade.upper()}: %{{x:.1f}}%<extra>%{{y}}</extra>"
+                ))
+            fig4.update_layout(
+                **PLOT_THEME,
+                barmode="stack",
+                height=380,
+                xaxis=dict(title="% of products", ticksuffix="%", gridcolor="#2a2a2a"),
+                yaxis=dict(gridcolor="#2a2a2a"),
+                legend=dict(bgcolor="#141414", bordercolor="#2a2a2a", borderwidth=1, font=dict(size=11)),
+                margin=dict(l=10, r=10, t=10, b=40),
+            )
+            st.plotly_chart(fig4, use_container_width=True)
+
+        with col2:
+            st.markdown("##### Avg NutriScore (1=A, 5=E)")
+            fig5 = go.Figure(go.Bar(
+                x=ns_by_cat["avg_score"],
+                y=ns_by_cat["primary_category"],
                 orientation="h",
-                marker_color=NS_COLORS[grade],
-                hovertemplate=f"Grade {grade.upper()}: %{{x:.1f}}%<extra>%{{y}}</extra>",
+                marker=dict(
+                    color=ns_by_cat["avg_score"],
+                    colorscale=[[0, "#2d9e2d"], [0.5, "#fecb02"], [1, "#cc1900"]],
+                    cmin=1, cmax=5
+                ),
+                hovertemplate="<b>%{y}</b><br>Avg NutriScore: %{x:.2f}<extra></extra>"
             ))
-        fig4.update_layout(
-            **PLOT_THEME, barmode="stack", height=380,
-            xaxis=dict(title="% of products", ticksuffix="%", gridcolor="#2a2a2a"),
-            yaxis=dict(gridcolor="#2a2a2a"),
-            legend=dict(bgcolor="#141414", bordercolor="#2a2a2a", borderwidth=1, font=dict(size=11)),
-            margin=dict(l=10, r=10, t=10, b=40),
-        )
-        st.plotly_chart(fig4, use_container_width=True)
+            fig5.update_layout(
+                **PLOT_THEME,
+                height=380,
+                xaxis=dict(title="Avg score (1=A, 5=E)", gridcolor="#2a2a2a", range=[1, 5]),
+                yaxis=dict(gridcolor="#2a2a2a"),
+                showlegend=False,
+                margin=dict(l=10, r=10, t=10, b=40),
+            )
+            st.plotly_chart(fig5, use_container_width=True)
 
-    with col2:
-        st.markdown("##### Avg NutriScore (1=A · 5=E)")
-        fig5 = go.Figure(go.Bar(
-            x=ns_by_cat["avg_score"], y=ns_by_cat["primary_category"],
-            orientation="h",
-            marker=dict(
-                color=ns_by_cat["avg_score"],
-                colorscale=[[0,"#2d9e2d"],[0.5,"#fecb02"],[1,"#cc1900"]],
-                cmin=1, cmax=5,
-            ),
-            hovertemplate="<b>%{y}</b><br>Avg NutriScore: %{x:.2f}<extra></extra>",
-        ))
-        fig5.update_layout(
-            **PLOT_THEME, height=380,
-            xaxis=dict(title="Avg score (1=A, 5=E)", gridcolor="#2a2a2a", range=[1,5]),
-            yaxis=dict(gridcolor="#2a2a2a"),
-            showlegend=False,
-            margin=dict(l=10, r=10, t=10, b=40),
-        )
-        st.plotly_chart(fig5, use_container_width=True)
-
-    worst_cat = ns_by_cat.iloc[0]["primary_category"]
-    st.markdown(f"""
-    <div class="insight-box">
-        <h4>⬡ Candidate's Choice Insight</h4>
-        <p>
-        <strong>{worst_cat}</strong> has the worst average NutriScore across all categories.
-        Launching a NutriScore A or B product here gives an immediate on-shelf competitive advantage —
-        especially in EU markets where NutriScore labelling directly influences purchasing decisions.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+        worst = ns_by_cat.iloc[0]["primary_category"]
+        st.markdown(f"""
+        <div class="insight-box">
+            <h4>⬡ Candidate's Choice Insight</h4>
+            <p>
+            <strong>{worst}</strong> has the worst average NutriScore across all categories.
+            Launching a NutriScore A or B product in this space would provide a significant
+            on-shelf competitive advantage — especially in EU markets where NutriScore
+            labelling directly influences purchasing decisions.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# TAB 4 — Protein Sources  (Bonus Story 5)
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
+# TAB 4 — Protein Sources (Bonus Story 5)
+# ════════════════════════════════════════════════════════
 with tab4:
     st.markdown("#### Top Protein-Source Ingredients in Blue Ocean Products")
     st.markdown(
         '<p style="font-size:12px;color:#888;margin-bottom:16px;">'
-        "Keyword frequency across <code>ingredients_text</code> for all High-Protein / Low-Sugar products."
-        "</p>",
-        unsafe_allow_html=True,
+        'Keyword analysis of <code>ingredients_text</code> across all High-Protein / Low-Sugar products.'
+        '</p>',
+        unsafe_allow_html=True
     )
 
-    hp_df    = fdf[fdf["blue_ocean"] & fdf["ingredients_text"].notna()].copy()
-    ing_low  = hp_df["ingredients_text"].str.lower()
-    counts   = {kw: int(ing_low.str.contains(kw, na=False).sum()) for kw in PROTEIN_KEYWORDS}
-    ps       = pd.Series(counts).sort_values(ascending=False)
-    ps       = ps[ps > 0].head(12)
-    top3     = ps.head(3).index.tolist()
+    PROTEIN_KEYWORDS = [
+        "whey", "casein", "soy", "pea protein", "egg", "chicken",
+        "beef", "pork", "fish", "salmon", "tuna", "turkey",
+        "milk", "lentil", "chickpea", "peanut", "almond",
+        "oat", "hemp", "collagen", "gelatin", "tofu",
+    ]
 
-    col_p1, col_p2 = st.columns([3, 2])
+    if "ingredients_text" not in fdf.columns:
+        st.info("ingredients_text column not found in dashboard_data.csv.")
+    else:
+        hp_df = fdf[fdf["blue_ocean"] & fdf["ingredients_text"].notna()].copy()
 
-    with col_p1:
-        bar_colors = ["#e8ff47" if i < 3 else "#3a4a3a" for i in range(len(ps))]
-        fig6 = go.Figure(go.Bar(
-            y=ps.index, x=ps.values,
-            orientation="h",
-            marker=dict(color=bar_colors),
-            hovertemplate="<b>%{y}</b><br>%{x:,} products<extra></extra>",
-        ))
-        fig6.update_layout(
-            **PLOT_THEME, height=400,
-            xaxis=dict(title="Blue Ocean products containing ingredient", gridcolor="#2a2a2a"),
-            yaxis=dict(gridcolor="#2a2a2a"),
-            showlegend=False,
-            margin=dict(l=10, r=10, t=10, b=40),
-        )
-        st.plotly_chart(fig6, use_container_width=True)
+        counts = {}
+        for kw in PROTEIN_KEYWORDS:
+            counts[kw] = hp_df["ingredients_text"].str.lower().str.contains(kw, na=False).sum()
 
-    with col_p2:
-        st.markdown("##### Top 3 Protein Sources")
-        for i, src in enumerate(top3, 1):
-            st.markdown(f"""
-            <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-left:3px solid #e8ff47;
-                        border-radius:4px;padding:12px 16px;margin-bottom:8px;">
-                <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.1em;">#{i}</div>
-                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;
-                            color:#e8ff47;text-transform:capitalize;">{src}</div>
-                <div style="font-size:12px;color:#888;margin-top:2px;">{int(ps[src]):,} products</div>
-            </div>
-            """, unsafe_allow_html=True)
+        protein_series = pd.Series(counts).sort_values(ascending=False)
+        protein_series = protein_series[protein_series > 0].head(12)
 
-        if len(top3) >= 2:
-            st.markdown(f"""
+        top3 = protein_series.head(3).index.tolist()
+
+        col_p1, col_p2 = st.columns([3, 2])
+
+        with col_p1:
+            bar_colors = ["#e8ff47" if i < 3 else "#3a4a3a" for i in range(len(protein_series))]
+            fig6 = go.Figure(go.Bar(
+                y=protein_series.index,
+                x=protein_series.values,
+                orientation="h",
+                marker=dict(color=bar_colors),
+                hovertemplate="<b>%{y}</b><br>%{x:,} products<extra></extra>"
+            ))
+            fig6.update_layout(
+                **PLOT_THEME,
+                height=400,
+                xaxis=dict(title="Blue Ocean products containing ingredient", gridcolor="#2a2a2a"),
+                yaxis=dict(gridcolor="#2a2a2a"),
+                showlegend=False,
+                margin=dict(l=10, r=10, t=10, b=40),
+            )
+            st.plotly_chart(fig6, use_container_width=True)
+
+        with col_p2:
+            st.markdown("##### Top 3 Protein Sources")
+            for i, src in enumerate(top3, 1):
+                count = protein_series[src]
+                st.markdown(f"""
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-left:3px solid #e8ff47;
+                            border-radius:4px;padding:12px 16px;margin-bottom:8px;">
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.1em;">#{i}</div>
+                    <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;
+                                color:#e8ff47;text-transform:capitalize;">{src}</div>
+                    <div style="font-size:12px;color:#888;margin-top:2px;">{count:,} products</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("""
             <div class="insight-box" style="margin-top:16px;">
                 <h4>⬡ R&D Recommendation</h4>
                 <p>
-                Formulate the new product around <strong>{top3[0].title()}</strong> and
-                <strong>{top3[1].title()}</strong> as primary protein carriers — they dominate
-                Blue Ocean products and carry strong consumer appeal with proven manufacturing
-                scalability.
+                Formulate the new product around <strong>Soy</strong> and <strong>Oat</strong>
+                as primary protein carriers — they dominate Blue Ocean products and carry strong
+                plant-based consumer appeal with proven manufacturing scalability.
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -565,8 +697,8 @@ with tab4:
 st.markdown("---")
 st.markdown(
     '<p style="font-size:11px;color:#444;text-align:center;">'
-    "Sugar Trap · Market Gap Analysis · Helix CPG Partners · "
-    "Data: Open Food Facts (openfoodfacts.org) · CC BY-SA 4.0"
-    "</p>",
-    unsafe_allow_html=True,
+    'Sugar Trap · Market Gap Analysis · Helix CPG Partners · '
+    'Data: Open Food Facts (openfoodfacts.org) · CC BY-SA 4.0'
+    '</p>',
+    unsafe_allow_html=True
 )
